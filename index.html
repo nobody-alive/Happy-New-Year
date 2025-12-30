@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>New Year Courier – Side View</title>
+<title>New Year Courier – Side View Room</title>
 <style>
   * {
     margin: 0;
@@ -11,7 +11,7 @@
     font-family: system-ui, sans-serif;
   }
   body {
-    background: #0a0a14;
+    background: #050816;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -20,12 +20,12 @@
   }
   #game-container {
     position: relative;
-    width: 900px;
-    height: 600px;
-    border: 2px solid #333;
+    width: 960px;
+    height: 540px;
+    border: 2px solid #222;
     border-radius: 10px;
     overflow: hidden;
-    background: linear-gradient(#1a1a2e, #0a0a14);
+    background: linear-gradient(#111827, #020617);
   }
   canvas {
     width: 100%;
@@ -36,29 +36,30 @@
   /* HUD */
   #hud {
     position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
+    top: 8px;
+    left: 8px;
+    right: 8px;
     display: flex;
     justify-content: space-between;
+    color: #e5e7eb;
+    font-size: 14px;
     pointer-events: none;
-    color: white;
-    font-size: 16px;
+    text-shadow: 0 0 3px #000;
   }
 
-  /* Wish button */
   #wish-button {
     position: absolute;
-    bottom: 20px;
+    bottom: 16px;
     left: 50%;
     transform: translateX(-50%);
-    padding: 12px 24px;
-    background: #ffd54f;
-    border: none;
+    padding: 10px 24px;
+    background: #facc15;
     border-radius: 999px;
-    font-weight: bold;
+    border: none;
     cursor: pointer;
+    font-weight: 700;
     display: none;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
   }
 
   /* Riddle modal */
@@ -67,44 +68,59 @@
     inset: 0;
     background: rgba(0,0,0,0.7);
     display: none;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+    z-index: 10;
   }
   #riddle-box {
-    background: #111827;
-    padding: 20px;
+    width: 90%;
+    max-width: 380px;
+    background: #020617;
     border-radius: 10px;
-    width: 350px;
-    color: white;
+    padding: 18px;
+    color: #e5e7eb;
+    box-shadow: 0 0 20px rgba(0,0,0,0.8);
+  }
+  #riddle-question {
+    margin-bottom: 8px;
+    font-size: 15px;
   }
   #riddle-answer {
     width: 100%;
     padding: 8px;
-    margin-top: 10px;
     border-radius: 6px;
-    border: 1px solid #333;
-    background: #000;
-    color: white;
+    border: 1px solid #374151;
+    background: #020617;
+    color: #e5e7eb;
+    margin-top: 4px;
+  }
+  #riddle-result {
+    min-height: 18px;
+    margin-top: 6px;
+    font-size: 13px;
+    color: #fca5a5;
   }
   #riddle-buttons {
-    margin-top: 15px;
+    margin-top: 12px;
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: 8px;
   }
   .btn {
-    padding: 8px 14px;
-    border-radius: 6px;
+    padding: 7px 14px;
+    border-radius: 999px;
     border: none;
     cursor: pointer;
+    font-size: 13px;
   }
   .btn-primary {
     background: #22c55e;
-    color: black;
+    color: #022c22;
+    font-weight: 600;
   }
   .btn-secondary {
-    background: #555;
-    color: white;
+    background: #4b5563;
+    color: #e5e7eb;
   }
 
   /* End screen */
@@ -112,21 +128,64 @@
     position: absolute;
     inset: 0;
     background: rgba(0,0,0,0.85);
-    color: white;
+    color: #e5e7eb;
     display: none;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
+    z-index: 20;
+    padding: 20px;
   }
-  #restart {
-    margin-top: 20px;
-    padding: 12px 20px;
-    background: #3b82f6;
+  #end-title {
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  #end-message {
+    font-size: 16px;
+    margin-bottom: 18px;
+  }
+  #restart-button {
+    padding: 10px 20px;
+    border-radius: 999px;
     border: none;
-    border-radius: 8px;
-    color: white;
     cursor: pointer;
+    background: #3b82f6;
+    color: #e5e7eb;
+    font-weight: 600;
+  }
+
+  /* Mobile joystick */
+  #joystick {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: rgba(15,23,42,0.7);
+    border: 2px solid rgba(148,163,184,0.6);
+    touch-action: none;
+  }
+  #joystick-handle {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e5e7eb;
+    transform: translate(-50%, -50%);
+  }
+
+  /* Small hint */
+  #hint {
+    position: absolute;
+    bottom: 6px;
+    right: 8px;
+    font-size: 11px;
+    color: #9ca3af;
+    text-shadow: 0 0 3px #000;
   }
 </style>
 </head>
@@ -144,244 +203,596 @@
   <div id="riddle-backdrop">
     <div id="riddle-box">
       <div id="riddle-question"></div>
-      <input id="riddle-answer" placeholder="Your answer..." />
+      <input id="riddle-answer" type="text" autocomplete="off" placeholder="Type your answer..." />
       <div id="riddle-result"></div>
       <div id="riddle-buttons">
-        <button class="btn btn-secondary" id="cancel-riddle">Cancel</button>
-        <button class="btn btn-primary" id="submit-riddle">Submit</button>
+        <button class="btn btn-secondary" id="riddle-cancel">Cancel</button>
+        <button class="btn btn-primary" id="riddle-submit">Submit</button>
       </div>
     </div>
   </div>
 
   <div id="end-screen">
-    <h1 id="end-title"></h1>
-    <p id="end-message"></p>
-    <button id="restart">Play Again</button>
+    <div id="end-title"></div>
+    <div id="end-message"></div>
+    <button id="restart-button">Play Again</button>
   </div>
+
+  <div id="joystick">
+    <div id="joystick-handle"></div>
+  </div>
+
+  <div id="hint">Move: Arrow keys or joystick · Wish: button</div>
 </div>
 
 <script>
-/* CANVAS SETUP */
+/* Canvas and dimensions */
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
-canvas.width = 900;
-canvas.height = 600;
+canvas.width = 960;
+canvas.height = 540;
 
-/* GAME CONSTANTS */
+/* World */
+const WORLD_WIDTH = 2400;
+const FLOOR_Y = 460;
+
+/* Player and NPC sizes */
 const PLAYER_WIDTH = 40;
-const PLAYER_HEIGHT = 70;
+const PLAYER_HEIGHT = 80;
 const NPC_WIDTH = 40;
-const NPC_HEIGHT = 70;
-const SPEED = 200;
-const NPC_COUNT = 12;
-const INTERACT_RANGE = 60;
-const START_TIME = 120; // 2 minutes
+const NPC_HEIGHT = 80;
 
-/* UI ELEMENTS */
+/* Game constants */
+const PLAYER_SPEED = 260; // px/sec
+const NPC_COUNT = 12;
+const INTERACT_DISTANCE = 70;
+const START_TIME = 120; // seconds
+
+/* UI elements */
 const clockEl = document.getElementById("clock");
 const statsEl = document.getElementById("stats");
-const wishBtn = document.getElementById("wish-button");
+const wishButton = document.getElementById("wish-button");
 const riddleBackdrop = document.getElementById("riddle-backdrop");
-const riddleQuestion = document.getElementById("riddle-question");
-const riddleAnswer = document.getElementById("riddle-answer");
-const riddleResult = document.getElementById("riddle-result");
-const submitRiddle = document.getElementById("submit-riddle");
-const cancelRiddle = document.getElementById("cancel-riddle");
+const riddleQuestionEl = document.getElementById("riddle-question");
+const riddleAnswerInput = document.getElementById("riddle-answer");
+const riddleResultEl = document.getElementById("riddle-result");
+const riddleSubmitBtn = document.getElementById("riddle-submit");
+const riddleCancelBtn = document.getElementById("riddle-cancel");
 const endScreen = document.getElementById("end-screen");
 const endTitle = document.getElementById("end-title");
 const endMessage = document.getElementById("end-message");
-const restartBtn = document.getElementById("restart");
+const restartButton = document.getElementById("restart-button");
 
-/* RIDDLES */
+/* Joystick elements */
+const joystick = document.getElementById("joystick");
+const joystickHandle = document.getElementById("joystick-handle");
+const JOYSTICK_RADIUS = 45;
+const HANDLE_RADIUS = 20;
+
+/* Riddles – fixed set */
 const RIDDLES = [
-  { q: "I come at the end of the year and the start of another.", a: "new year" },
-  { q: "I shine at night and count down to twelve.", a: "clock" },
-  { q: "I am the first month after New Year’s Eve.", a: "january" },
-  { q: "People make me on New Year to change something.", a: "resolution" },
-  { q: "I fill the sky with colors and sound at midnight.", a: "fireworks" },
-  { q: "You raise me in your hand to celebrate.", a: "glass" },
-  { q: "I fall from the sky as tiny white flakes.", a: "snow" },
+  { q: "I come at the end of the year and the start of another. What am I?", a: "new year" },
+  { q: "I shine at night and count down to twelve. What am I?", a: "clock" },
+  { q: "I am the first month after New Year’s Eve. What am I?", a: "january" },
+  { q: "People make me on New Year to change something. What am I?", a: "resolution" },
+  { q: "I fill the sky with colors and sound at midnight. What am I?", a: "fireworks" },
+  { q: "You raise me in your hand to celebrate. What am I?", a: "glass" },
+  { q: "I fall from the sky as tiny white flakes in winter. What am I?", a: "snow" },
   { q: "I am a greeting people say when a year begins.", a: "happy new year" },
-  { q: "I show the days and months of a year.", a: "calendar" },
-  { q: "I ring loudly when the clock strikes twelve.", a: "bell" },
-  { q: "I am the night before the new year.", a: "new year eve" },
-  { q: "You blow me at parties and I make a loud sound.", a: "party horn" }
+  { q: "I show the days and months of a year. What am I?", a: "calendar" },
+  { q: "I ring loudly when the clock strikes twelve. What am I?", a: "bell" },
+  { q: "I am the night before the new year. What am I?", a: "new year eve" },
+  { q: "You blow me at parties and I make a loud sound. What am I?", a: "party horn" }
 ];
 
-/* GAME STATE */
-let player = { x: 100, y: 450 };
-let npcs = [];
+/* State */
+let player, npcs, cameraX;
 let keys = {};
 let timeLeft = START_TIME;
-let lastTime = null;
+let lastTimestamp = null;
 let gameRunning = true;
-let interactingNPC = null;
+let interactingNpcIndex = null;
+let walkTime = 0;
+let facingDir = 1; // 1 = right, -1 = left
 
-/* CREATE NPCs */
-function spawnNPCs() {
+/* Joystick state */
+let joystickActive = false;
+let joystickDX = 0;
+
+/* Utility */
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+/* Init / reset */
+function resetGame() {
+  player = {
+    x: 200,
+    y: FLOOR_Y,
+    vx: 0
+  };
+
+  // Scatter NPCs through a big "room"
   npcs = [];
+  const margin = 200;
   for (let i = 0; i < NPC_COUNT; i++) {
+    const x = margin + Math.random() * (WORLD_WIDTH - margin * 2);
     npcs.push({
-      x: 150 + i * 60,
-      y: 450,
+      x,
+      y: FLOOR_Y,
       wished: false,
-      riddle: RIDDLES[i]
+      riddleIndex: i % RIDDLES.length
     });
+  }
+
+  cameraX = 0;
+  timeLeft = START_TIME;
+  gameRunning = true;
+  interactingNpcIndex = null;
+  walkTime = 0;
+  lastTimestamp = null;
+
+  wishButton.style.display = "none";
+  riddleBackdrop.style.display = "none";
+  endScreen.style.display = "none";
+  updateHUD();
+  requestAnimationFrame(gameLoop);
+}
+
+/* HUD */
+function formatClock(seconds) {
+  if (seconds <= 0) return "Time: 12:00";
+  const sec = Math.floor(seconds);
+  const mm = 11;
+  const ss = String(sec).padStart(2, "0");
+  return `Time: ${mm}:${ss}`;
+}
+function updateHUD() {
+  clockEl.textContent = formatClock(timeLeft);
+  const wishedCount = npcs.filter(n => n.wished).length;
+  statsEl.textContent = `NPCs wished: ${wishedCount} / ${NPC_COUNT}`;
+}
+
+/* Riddle modal */
+function openRiddle(index) {
+  interactingNpcIndex = index;
+  const npc = npcs[index];
+  const r = RIDDLES[npc.riddleIndex];
+  riddleQuestionEl.textContent = r.q;
+  riddleAnswerInput.value = "";
+  riddleResultEl.textContent = "";
+  riddleBackdrop.style.display = "flex";
+  riddleAnswerInput.focus();
+}
+function closeRiddle() {
+  interactingNpcIndex = null;
+  riddleBackdrop.style.display = "none";
+  riddleResultEl.textContent = "";
+}
+function submitRiddle() {
+  if (interactingNpcIndex === null) return;
+  const npc = npcs[interactingNpcIndex];
+  const r = RIDDLES[npc.riddleIndex];
+  const user = riddleAnswerInput.value.trim().toLowerCase();
+  const normUser = user.replace(/\s+/g, "");
+  const normAns = r.a.toLowerCase().replace(/\s+/g, "");
+
+  if (normUser === normAns) {
+    npc.wished = true;
+    closeRiddle();
+    updateHUD();
+    const allWished = npcs.every(n => n.wished);
+    if (allWished && timeLeft > 0) {
+      endGame(true);
+    }
+  } else {
+    riddleResultEl.textContent = "You're wrong, try again.";
   }
 }
 
-/* DRAW FUNCTIONS */
-function drawGround() {
-  ctx.fillStyle = "#2d2d44";
-  ctx.fillRect(0, 520, canvas.width, 80);
+/* End game */
+function endGame(win) {
+  gameRunning = false;
+  endScreen.style.display = "flex";
+  if (win) {
+    endTitle.textContent = "Happy New Year!!!!!";
+    endMessage.textContent = "You wished everyone a Happy New Year before midnight. Well done, courier!";
+  } else {
+    endTitle.textContent = "Too late!";
+    endMessage.textContent = "Midnight struck before you reached everyone.";
+  }
 }
 
-function drawGrandfatherClock() {
-  ctx.fillStyle = "#5a3e1b";
-  ctx.fillRect(20, 300, 80, 220);
+/* Drawing helpers */
+function worldToScreenX(x) {
+  return Math.round(x - cameraX);
+}
 
-  ctx.fillStyle = "#d4c08a";
+/* Background room */
+function drawRoom() {
+  // Back wall gradient
+  const g = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  g.addColorStop(0, "#0f172a");
+  g.addColorStop(1, "#020617");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Ceiling and floor
+  ctx.fillStyle = "#111827";
+  ctx.fillRect(0, FLOOR_Y + 10 - cameraX * 0, canvas.width, canvas.height - FLOOR_Y);
+  ctx.fillStyle = "#1f2933";
+  ctx.fillRect(0, FLOOR_Y + 10, canvas.width, 80);
+
+  // Some “pillars” and decorations
+  ctx.fillStyle = "#0b1120";
+  const spacing = 300;
+  for (let x = 0; x < WORLD_WIDTH; x += spacing) {
+    const sx = worldToScreenX(x);
+    if (sx + 40 < 0 || sx > canvas.width) continue;
+    ctx.fillRect(sx, 120, 40, 280);
+  }
+
+  // Fairy lights
+  ctx.strokeStyle = "#4b5563";
+  ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.arc(60, 330, 30, 0, Math.PI * 2);
+  for (let x = 0; x <= WORLD_WIDTH; x += 40) {
+    const sx = worldToScreenX(x);
+    if (sx < -40 || sx > canvas.width + 40) continue;
+    ctx.lineTo(sx, 110 + Math.sin(x * 0.01) * 8);
+  }
+  ctx.stroke();
+
+  for (let x = 0; x <= WORLD_WIDTH; x += 80) {
+    const sx = worldToScreenX(x);
+    if (sx < -20 || sx > canvas.width + 20) continue;
+    ctx.beginPath();
+    ctx.arc(sx, 110 + Math.sin(x * 0.01) * 8, 4, 0, Math.PI * 2);
+    ctx.fillStyle = "#facc15";
+    ctx.fill();
+  }
+}
+
+/* Grandfather clock with numbers */
+function drawGrandfatherClock() {
+  const clockWorldX = 80;
+  const clockScreenX = worldToScreenX(clockWorldX);
+
+  // Body
+  ctx.fillStyle = "#4b2e16";
+  ctx.fillRect(clockScreenX - 40, FLOOR_Y - 260, 80, 260);
+
+  // Face
+  const cx = clockScreenX;
+  const cy = FLOOR_Y - 220;
+  const radius = 40;
+  ctx.fillStyle = "#f9fafb";
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
   ctx.fill();
+  ctx.strokeStyle = "#111827";
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
-  let minutes = Math.floor(timeLeft);
-  let angle = (minutes / START_TIME) * Math.PI * 2;
+  // Numbers 1–12
+  ctx.fillStyle = "#111827";
+  ctx.font = "10px system-ui";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  for (let i = 1; i <= 12; i++) {
+    const angle = (Math.PI * 2) * (i / 12) - Math.PI / 2;
+    const nx = cx + Math.cos(angle) * (radius - 10);
+    const ny = cy + Math.sin(angle) * (radius - 10);
+    ctx.fillText(i.toString(), nx, ny);
+  }
 
-  ctx.strokeStyle = "black";
+  // Map time to hands: start at about 11:00 moving to 12:00
+  const tRatio = 1 - clamp(timeLeft / START_TIME, 0, 1); // 0 -> full time, 1 -> midnight
+
+  // Minute hand (full circle over duration)
+  const minuteAngle = -Math.PI / 2 + tRatio * Math.PI * 2;
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(minuteAngle) * (radius - 8),
+             cy + Math.sin(minuteAngle) * (radius - 8));
+  ctx.stroke();
+
+  // Hour hand (from ~11 to 12)
+  const hourStartAngle = (11 / 12) * Math.PI * 2 - Math.PI / 2; // near 11
+  const hourEndAngle = -Math.PI / 2; // 12
+  const hourAngle = hourStartAngle + (hourEndAngle - hourStartAngle) * tRatio;
   ctx.lineWidth = 3;
   ctx.beginPath();
-  ctx.moveTo(60, 330);
-  ctx.lineTo(60 + Math.cos(angle) * 20, 330 + Math.sin(angle) * 20);
+  ctx.moveTo(cx, cy);
+  ctx.lineTo(cx + Math.cos(hourAngle) * (radius - 15),
+             cy + Math.sin(hourAngle) * (radius - 15));
   ctx.stroke();
+
+  // Pendulum
+  const pendulumOriginY = FLOOR_Y - 180;
+  const pendulumLength = 60;
+  const swing = Math.sin(performance.now() / 300) * 0.3;
+  const pendulumAngle = Math.PI / 2 + swing;
+  ctx.strokeStyle = "#d4af37";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx, pendulumOriginY);
+  ctx.lineTo(cx + Math.cos(pendulumAngle) * pendulumLength,
+             pendulumOriginY + Math.sin(pendulumAngle) * pendulumLength);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx + Math.cos(pendulumAngle) * pendulumLength,
+          pendulumOriginY + Math.sin(pendulumAngle) * pendulumLength,
+          10, 0, Math.PI * 2);
+  ctx.fillStyle = "#d4af37";
+  ctx.fill();
 }
 
+/* Character art (simple but more detailed) */
+function drawCharacter(xWorld, y, width, height, colorBody, colorHead, walking, phase, facingRight) {
+  const x = worldToScreenX(xWorld);
+
+  // Shadow
+  ctx.fillStyle = "rgba(15,23,42,0.8)";
+  ctx.beginPath();
+  ctx.ellipse(x + width / 2, y + 4, width * 0.6, 6, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Body
+  const torsoHeight = height * 0.4;
+  const legsHeight = height * 0.35;
+  const headRadius = height * 0.18;
+
+  const torsoTop = y - legsHeight - torsoHeight;
+  const headCenterY = torsoTop - headRadius - 4;
+
+  ctx.fillStyle = colorBody;
+  ctx.fillRect(x + width * 0.2, torsoTop, width * 0.6, torsoHeight);
+
+  // Head
+  ctx.fillStyle = colorHead;
+  ctx.beginPath();
+  ctx.arc(x + width / 2, headCenterY, headRadius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Simple face
+  ctx.fillStyle = "#111827";
+  const eyeOffset = facingRight ? 4 : -4;
+  ctx.beginPath();
+  ctx.arc(x + width / 2 + eyeOffset, headCenterY - 3, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs (animated)
+  const legWidth = width * 0.18;
+  const legBaseY = y;
+  let legOffset = 0;
+  if (walking) {
+    legOffset = Math.sin(phase * 10) * 6;
+  }
+  ctx.fillStyle = "#111827";
+  ctx.fillRect(x + width * 0.25 - legOffset, legBaseY - legsHeight, legWidth, legsHeight);
+  ctx.fillRect(x + width * 0.57 + legOffset, legBaseY - legsHeight, legWidth, legsHeight);
+
+  // Arms (simple swing)
+  const armHeight = torsoHeight * 0.7;
+  const armPhase = walking ? Math.cos(phase * 10) * 5 : 0;
+
+  ctx.save();
+  ctx.translate(x + width * 0.2, torsoTop + 10);
+  ctx.rotate((armPhase * (Math.PI / 180)) * (facingRight ? 1 : -1));
+  ctx.fillStyle = colorBody;
+  ctx.fillRect(-6, 0, 10, armHeight);
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(x + width * 0.8, torsoTop + 10);
+  ctx.rotate((-armPhase * (Math.PI / 180)) * (facingRight ? 1 : -1));
+  ctx.fillStyle = colorBody;
+  ctx.fillRect(-4, 0, 10, armHeight);
+  ctx.restore();
+}
+
+/* Player & NPC drawing wrappers */
 function drawPlayer() {
-  ctx.fillStyle = "#ffcc66";
-  ctx.fillRect(player.x, player.y - PLAYER_HEIGHT, PLAYER_WIDTH, PLAYER_HEIGHT);
+  const walking = Math.abs(player.vx) > 5;
+  drawCharacter(
+    player.x, player.y,
+    PLAYER_WIDTH, PLAYER_HEIGHT,
+    "#38bdf8", // body
+    "#facc15", // head
+    walking, walkTime,
+    facingDir >= 0
+  );
 }
-
 function drawNPCs() {
-  npcs.forEach(npc => {
-    ctx.fillStyle = npc.wished ? "#22c55e" : "#3b82f6";
-    ctx.fillRect(npc.x, npc.y - NPC_HEIGHT, NPC_WIDTH, NPC_HEIGHT);
+  npcs.forEach((n, index) => {
+    const walking = false;
+    drawCharacter(
+      n.x, n.y,
+      NPC_WIDTH, NPC_HEIGHT,
+      n.wished ? "#22c55e" : "#a855f7",
+      "#e5e7eb",
+      walking, 0,
+      true
+    );
+
+    // Small mark if not yet wished
+    const sx = worldToScreenX(n.x);
+    if (!n.wished) {
+      ctx.fillStyle = "#f97316";
+      ctx.beginPath();
+      ctx.arc(sx + NPC_WIDTH / 2, n.y - NPC_HEIGHT - 8, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 }
 
-/* UPDATE */
+/* Update logic */
 function update(dt) {
   if (!gameRunning) return;
 
   timeLeft -= dt;
   if (timeLeft <= 0) {
     timeLeft = 0;
-    endGame(false);
+    updateHUD();
+    const allWished = npcs.every(n => n.wished);
+    endGame(allWished);
+    return;
   }
 
-  let vx = 0;
-  if (keys["ArrowLeft"]) vx = -1;
-  if (keys["ArrowRight"]) vx = 1;
+  // Movement input (keyboard + joystick)
+  let inputX = 0;
+  if (keys["ArrowLeft"] || keys["a"] || keys["A"]) inputX -= 1;
+  if (keys["ArrowRight"] || keys["d"] || keys["D"]) inputX += 1;
+  inputX += joystickDX;
 
-  player.x += vx * SPEED * dt;
-  player.x = Math.max(0, Math.min(canvas.width - PLAYER_WIDTH, player.x));
+  inputX = clamp(inputX, -1, 1);
+  player.vx = inputX * PLAYER_SPEED;
 
-  let nearNPC = npcs.find(n => !n.wished && Math.abs(n.x - player.x) < INTERACT_RANGE);
-  wishBtn.style.display = nearNPC ? "block" : "none";
+  if (Math.abs(player.vx) > 5) {
+    facingDir = player.vx > 0 ? 1 : -1;
+    walkTime += dt;
+  }
+
+  player.x += player.vx * dt;
+  player.x = clamp(player.x, 50, WORLD_WIDTH - 50);
+
+  // Camera follows player
+  const margin = canvas.width * 0.3;
+  const camTarget = player.x - canvas.width / 2;
+  cameraX += (camTarget - cameraX) * 0.08;
+  cameraX = clamp(cameraX, 0, WORLD_WIDTH - canvas.width);
+
+  // Wish button visibility based on proximity
+  let nearIndex = null;
+  let minDist = Infinity;
+  npcs.forEach((n, i) => {
+    if (n.wished) return;
+    const dx = n.x - player.x;
+    const dist = Math.abs(dx);
+    if (dist < INTERACT_DISTANCE && dist < minDist) {
+      minDist = dist;
+      nearIndex = i;
+    }
+  });
+
+  if (nearIndex !== null && gameRunning) {
+    wishButton.style.display = "block";
+    wishButton.dataset.npcIndex = nearIndex;
+  } else {
+    wishButton.style.display = "none";
+    delete wishButton.dataset.npcIndex;
+  }
 
   updateHUD();
 }
 
-/* HUD */
-function updateHUD() {
-  clockEl.textContent = "Time: 11:" + String(Math.floor(timeLeft)).padStart(2, "0");
-  statsEl.textContent = `NPCs wished: ${npcs.filter(n => n.wished).length} / ${NPC_COUNT}`;
-}
-
-/* GAME LOOP */
-function loop(timestamp) {
-  if (!lastTime) lastTime = timestamp;
-  let dt = (timestamp - lastTime) / 1000;
-  lastTime = timestamp;
-
-  update(dt);
-  draw();
-
-  if (gameRunning) requestAnimationFrame(loop);
-}
-
-/* DRAW EVERYTHING */
-function draw() {
+/* Render */
+function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawGround();
+  drawRoom();
   drawGrandfatherClock();
   drawNPCs();
   drawPlayer();
 }
 
-/* RIDDLE LOGIC */
-wishBtn.onclick = () => {
-  let npc = npcs.find(n => !n.wished && Math.abs(n.x - player.x) < INTERACT_RANGE);
-  if (!npc) return;
+/* Game loop */
+function gameLoop(timestamp) {
+  if (!lastTimestamp) lastTimestamp = timestamp;
+  const dt = (timestamp - lastTimestamp) / 1000;
+  lastTimestamp = timestamp;
 
-  interactingNPC = npc;
-  riddleQuestion.textContent = npc.riddle.q;
-  riddleAnswer.value = "";
-  riddleResult.textContent = "";
-  riddleBackdrop.style.display = "flex";
-};
+  update(dt);
+  render();
 
-submitRiddle.onclick = () => {
-  let ans = riddleAnswer.value.trim().toLowerCase();
-  let correct = interactingNPC.riddle.a.toLowerCase();
-
-  if (ans.replace(/\s+/g, "") === correct.replace(/\s+/g, "")) {
-    interactingNPC.wished = true;
-    riddleBackdrop.style.display = "none";
-
-    if (npcs.every(n => n.wished)) {
-      endGame(true);
-    }
-  } else {
-    riddleResult.textContent = "You're wrong, try again.";
-  }
-};
-
-cancelRiddle.onclick = () => {
-  riddleBackdrop.style.display = "none";
-};
-
-/* END GAME */
-function endGame(win) {
-  gameRunning = false;
-  endScreen.style.display = "flex";
-
-  if (win) {
-    endTitle.textContent = "Happy New Year!!!!!";
-    endMessage.textContent = "You wished everyone before midnight!";
-  } else {
-    endTitle.textContent = "Too Late!";
-    endMessage.textContent = "Midnight arrived before you finished.";
+  if (gameRunning) {
+    requestAnimationFrame(gameLoop);
   }
 }
 
-/* INPUT */
-window.addEventListener("keydown", e => keys[e.key] = true);
-window.addEventListener("keyup", e => keys[e.key] = false);
+/* Input – keyboard */
+window.addEventListener("keydown", e => {
+  keys[e.key] = true;
+});
+window.addEventListener("keyup", e => {
+  keys[e.key] = false;
+});
 
-/* RESTART */
-restartBtn.onclick = () => {
-  timeLeft = START_TIME;
-  player.x = 100;
-  spawnNPCs();
-  gameRunning = true;
-  endScreen.style.display = "none";
-  lastTime = null;
-  requestAnimationFrame(loop);
-};
+/* Joystick handling */
+function getJoystickCenter() {
+  const rect = joystick.getBoundingClientRect();
+  return {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2
+  };
+}
 
-/* START GAME */
-spawnNPCs();
-requestAnimationFrame(loop);
+function handleJoystickMove(clientX, clientY) {
+  const center = getJoystickCenter();
+  const dx = clientX - center.x;
+  const dy = clientY - center.y;
+  const dist = Math.sqrt(dx*dx + dy*dy);
+  const maxDist = JOYSTICK_RADIUS - HANDLE_RADIUS;
+
+  let ndx = dx;
+  let ndy = dy;
+  if (dist > maxDist) {
+    ndx = dx / dist * maxDist;
+    ndy = dy / dist * maxDist;
+  }
+
+  joystickHandle.style.transform =
+    `translate(${ndx}px, ${ndy}px) translate(-50%, -50%)`;
+
+  // Horizontal control only for movement
+  joystickDX = ndx / maxDist; // between -1 and 1
+}
+
+function resetJoystick() {
+  joystickHandle.style.transform = "translate(-50%, -50%)";
+  joystickDX = 0;
+  joystickActive = false;
+}
+
+joystick.addEventListener("pointerdown", (e) => {
+  joystickActive = true;
+  joystick.setPointerCapture(e.pointerId);
+  handleJoystickMove(e.clientX, e.clientY);
+});
+joystick.addEventListener("pointermove", (e) => {
+  if (!joystickActive) return;
+  handleJoystickMove(e.clientX, e.clientY);
+});
+joystick.addEventListener("pointerup", (e) => {
+  resetJoystick();
+});
+joystick.addEventListener("pointercancel", (e) => {
+  resetJoystick();
+});
+
+/* Wish button */
+wishButton.addEventListener("click", () => {
+  if (!gameRunning) return;
+  const index = parseInt(wishButton.dataset.npcIndex, 10);
+  if (isNaN(index)) return;
+  openRiddle(index);
+});
+
+/* Riddle modal events */
+riddleSubmitBtn.addEventListener("click", submitRiddle);
+riddleCancelBtn.addEventListener("click", closeRiddle);
+riddleAnswerInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") submitRiddle();
+  if (e.key === "Escape") closeRiddle();
+});
+
+/* Restart */
+restartButton.addEventListener("click", resetGame);
+
+/* Start game */
+resetGame();
 </script>
 </body>
 </html>
