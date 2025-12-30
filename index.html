@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>New Year Courier</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    body {
+      background: #050816;
+      color: #f0f0f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    #game-container {
+      position: relative;
+      width: 900px;
+      max-width: 100vw;
+      height: 600px;
+      max-height: 100vh;
+      background: radial-gradient(circle at top, #1a2740 0, #050816 55%, #02010a 100%);
+      border: 2px solid #333;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    #game-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: transparent;
+    }
+
+    /* HUD */
+    #hud {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      font-size: 14px;
+    }
+    #clock {
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    #stats {
+      padding: 6px 10px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    /* Wish button */
+    #wish-button {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 10px 20px;
+      background: #ffd54f;
+      color: #111;
+      font-weight: 700;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      box-shadow: 0 0 15px rgba(255, 213, 79, 0.6);
+      display: none;
+    }
+    #wish-button:hover {
+      background: #ffe082;
+    }
+
+    /* Riddle pop-up */
+    #riddle-modal-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10;
+    }
+    #riddle-modal {
+      width: 90%;
+      max-width: 400px;
+      background: #111827;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.7);
+    }
+    #riddle-question {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+    #riddle-result {
+      font-size: 13px;
+      margin-top: 8px;
+      min-height: 16px;
+    }
+    #riddle-answer {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #f9fafb;
+      margin-top: 5px;
+    }
+    #riddle-buttons {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .btn {
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-primary {
+      background: #22c55e;
+      color: #020617;
+      font-weight: 600;
+    }
+    .btn-secondary {
+      background: #4b5563;
+      color: #f9fafb;
+    }
+
+    /* Overlay for win/lose */
+    #end-screen {
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      color: #f9fafb;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      z-index: 20;
+    }
+    #end-screen h1 {
+      margin-bottom: 8px;
+      font-size: 26px;
+    }
+    #end-screen p {
+      margin-bottom: 18px;
+      font-size: 15px;
+    }
+    #restart-button {
+      padding: 10px 18px;
+      border-radius: 999px;
+      border: none;
+      background: #3b82f6;
+      color: #f9fafb;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    #restart-button:hover {
+      background: #60a5fa;
+    }
+
+    /* Mobile hint */
+    #controls-hint {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 11px;
+      padding: 4px 8px;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 999px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas" width="900" height="600"></canvas>
+
+    <div id="hud">
+      <div id="clock">Time: 11:59</div>
+      <div id="stats">NPCs wished: 0 / 12</div>
+    </div>
+
+    <button id="wish-button">Wish?</button>
+
+    <div id="riddle-modal-backdrop">
+      <div id="riddle-modal">
+        <div id="riddle-question"></div>
+        <input
+          id="riddle-answer"
+          type="text"
+          placeholder="Type your answer..."
+          autocomplete="off"
+        />
+        <div id="riddle-result"></div>
+        <div id="riddle-buttons">
+          <button class="btn btn-secondary" id="riddle-cancel">Cancel</button>
+          <button class="btn btn-primary" id="riddle-submit">Submit</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="end-screen">
+      <h1 id="end-title"></h1>
+      <p id="end-message"></p>
+      <button id="restart-button">Play Again</button>
+    </div>
+
+    <div id="controls-hint">Move: Arrow keys or swipe</div>
+  </div>
+
+  <script>
+    // --- Game constants ---
+    const canvas = document.getElementById("game-canvas");
+    const ctx = canvas.getContext("2d");
+
+    const W = canvas.width;
+    const H = canvas.height;
+
+    const PLAYER_SPEED = 200; // pixels per second
+    const NPC_COUNT = 12;
+    const NPC_RADIUS = 14;
+    const PLAYER_RADIUS = 12;
+    const INTERACT_DISTANCE = 45;
+
+    // Game time: countdown from 60 seconds to midnight
+    const START_SECONDS = 60;
+
+    // UI elements
+    const clockEl = document.getElementById("clock");
+    const statsEl = document.getElementById("stats");
+    const wishButton = document.getElementById("wish-button");
+
+    const riddleBackdrop = document.getElementById("riddle-modal-backdrop");
+    const riddleQuestionEl = document.getElementById("riddle-question");
+    const riddleAnswerInput = document.getElementById("riddle-answer");
+    const riddleResultEl = document.getElementById("riddle-result");
+    const riddleSubmitBtn = document.getElementById("riddle-submit");
+    const riddleCancelBtn = document.getElementById("riddle-cancel");
+
+    const endScreen = document.getElementById("end-screen");
+    const endTitle = document.getElementById("end-title");
+    const endMessage = document.getElementById("end-message");
+    const restartButton = document.getElementById("restart-button");
+
+    // Riddles (fixed, one per NPC)
+    const RIDDLES = [
+      {
+        question: "I come at the end of the year and the start of another. What am I?",
+        answer: "new year",
+      },
+      {
+        question: "I shine at night and count down to twelve. What am I?",
+        answer: "clock",
+      },
+      {
+        question: "I am the first month after New Year’s Eve. What am I?",
+        answer: "january",
+      },
+      {
+        question: "People make me on New Year to change something. What am I?",
+        answer: "resolution",
+      },
+      {
+        question: "I fill the sky with colors and sound at midnight. What am I?",
+        answer: "fireworks",
+      },
+      {
+        question: "You raise me in your hand to celebrate. What am I?",
+        answer: "glass",
+      },
+      {
+        question: "I fall from the sky as tiny white flakes in winter. What am I?",
+        answer: "snow",
+      },
+      {
+        question: "I am a greeting people say when a year begins.",
+        answer: "happy new year",
+      },
+      {
+        question: "I show the days and months of a year. What am I?",
+        answer: "calendar",
+      },
+      {
+        question: "I ring loudly when the clock strikes twelve. What am I?",
+        answer: "bell",
+      },
+      {
+        question: "I am the night before the new year. What am I?",
+        answer: "new year eve",
+      },
+      {
+        question: "You blow me at parties and I make a loud sound. What am I?",
+        answer: "party horn",
+      },
+    ];
+
+    // --- Game state ---
+    let player;
+    let npcs = [];
+    let keys = {};
+    let timeLeft = START_SECONDS; // seconds
+    let lastTime = null;
+    let gameRunning = true;
+    let interactingNpcIndex = null;
+
+    // Swipe handling
+    let touchStartX = null;
+    let touchStartY = null;
+    let swipeThreshold = 40; // pixels
+
+    // --- Utility ---
+    function randRange(min, max) {
+      return Math.random() * (max - min) + min;
+    }
+
+    function distance(a, b) {
+      const dx = a.x - b.x;
+      const dy = a.y - b.y;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    function formatClock(seconds) {
+      // Show as 11:XX until zero, then 12:00
+      if (seconds <= 0) return "Time: 12:00";
+      const sec = Math.floor(seconds);
+      const display = sec < 10 ? "0" + sec : sec;
+      return "Time: 11:" + display;
+    }
+
+    function resetGame() {
+      // Player in center
+      player = {
+        x: W / 2,
+        y: H / 2,
+      };
+
+      // Place NPCs randomly, not too close to the player
+      npcs = [];
+      const usedPositions = [];
+
+      for (let i = 0; i < NPC_COUNT; i++) {
+        let pos;
+        let attempts = 0;
+        do {
+          pos = {
+            x: randRange(60, W - 60),
+            y: randRange(60, H - 60),
+          };
+          attempts++;
+        } while (
+          (distance(pos, player) < 120 ||
+            usedPositions.some((p) => distance(p, pos) < 60)) &&
+          attempts < 100
+        );
+        usedPositions.push(pos);
+
+        npcs.push({
+          x: pos.x,
+          y: pos.y,
+          wished: false,
+          riddleIndex: i % RIDDLES.length,
+        });
+      }
+
+      timeLeft = START_SECONDS;
+      gameRunning = true;
+      interactingNpcIndex = null;
+      lastTime = null;
+      wishButton.style.display = "none";
+      riddleBackdrop.style.display = "none";
+      endScreen.style.display = "none";
+      updateHUD();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function updateHUD() {
+      clockEl.textContent = formatClock(timeLeft);
+      const wishedCount = npcs.filter((n) => n.wished).length;
+      statsEl.textContent = `NPCs wished: ${wishedCount} / ${NPC_COUNT}`;
+    }
+
+    function endGame(win) {
+      gameRunning = false;
+      endScreen.style.display = "flex";
+      if (win) {
+        endTitle.textContent = "You did it!";
+        endMessage.textContent =
+          "You wished Happy New Year to everyone before midnight.";
+      } else {
+        endTitle.textContent = "Too late!";
+        endMessage.textContent =
+          "Midnight arrived before you could wish everyone a Happy New Year.";
+      }
+    }
+
+    // --- Riddle modal logic ---
+    function openRiddle(npcIndex) {
+      const npc = npcs[npcIndex];
+      const riddle = RIDDLES[npc.riddleIndex];
+
+      interactingNpcIndex = npcIndex;
+      riddleQuestionEl.textContent = riddle.question;
+      riddleAnswerInput.value = "";
+      riddleResultEl.textContent = "";
+      riddleBackdrop.style.display = "flex";
+      riddleAnswerInput.focus();
+    }
+
+    function closeRiddle() {
+      interactingNpcIndex = null;
+      riddleBackdrop.style.display = "none";
+      riddleResultEl.textContent = "";
+    }
+
+    function submitRiddle() {
+      if (interactingNpcIndex === null) return;
+      const npc = npcs[interactingNpcIndex];
+      const riddle = RIDDLES[npc.riddleIndex];
+      const userAnswer = riddleAnswerInput.value.trim().toLowerCase();
+
+      // Normalize both answers (remove spaces)
+      const normalizedUser = userAnswer.replace(/\s+/g, "");
+      const normalizedAnswer = riddle.answer.toLowerCase().replace(/\s+/g, "");
+
+      if (normalizedUser === normalizedAnswer) {
+        npc.wished = true;
+        closeRiddle();
+        updateHUD();
+        const wishedCount = npcs.filter((n) => n.wished).length;
+        if (wishedCount === NPC_COUNT && timeLeft > 0) {
+          endGame(true);
+        }
+      } else {
+        riddleResultEl.textContent = "You're wrong, try again.";
+      }
+    }
+
+    // --- Input handling ---
+    window.addEventListener("keydown", (e) => {
+      keys[e.key] = true;
+    });
+    window.addEventListener("keyup", (e) => {
+      keys[e.key] = false;
+    });
+
+    // Touch / swipe for movement
+    canvas.addEventListener(
+      "touchstart",
+      (e) => {
+        const t = e.touches[0];
+        touchStartX = t.clientX;
+        touchStartY = t.clientY;
+      },
+      { passive: true }
+    );
+    canvas.addEventListener(
+      "touchend",
+      (e) => {
+        if (touchStartX === null || touchStartY === null) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - touchStartX;
+        const dy = t.clientY - touchStartY;
+
+        if (Math.abs(dx) < swipeThreshold && Math.abs(dy) < swipeThreshold) {
+          // Small swipe: ignore
+          touchStartX = null;
+          touchStartY = null;
+          return;
+        }
+
+        // Determine swipe direction
+        if (Math.abs(dx) > Math.abs(dy)) {
+          // Horizontal swipe
+          if (dx > 0) {
+            // right
+            player.x += 40;
+          } else {
+            // left
+            player.x -= 40;
+          }
+        } else {
+          // Vertical swipe
+          if (dy > 0) {
+            // down
+            player.y += 40;
+          } else {
+            // up
+            player.y -= 40;
+          }
+        }
+
+        // Clamp
+        player.x = Math.max(PLAYER_RADIUS, Math.min(W - PLAYER_RADIUS, player.x));
+        player.y = Math.max(PLAYER_RADIUS, Math.min(H - PLAYER_RADIUS, player.y));
+
+        touchStartX = null;
+        touchStartY = null;
+      },
+      { passive: true }
+    );
+
+    wishButton.addEventListener("click", () => {
+      if (!gameRunning) return;
+      // Find closest NPC in range that is not wished
+      let closestIndex = null;
+      let closestDist = Infinity;
+      npcs.forEach((npc, index) => {
+        if (npc.wished) return;
+        const d = distance(npc, player);
+        if (d < INTERACT_DISTANCE && d < closestDist) {
+          closestDist = d;
+          closestIndex = index;
+        }
+      });
+      if (closestIndex !== null) {
+        openRiddle(closestIndex);
+      }
+    });
+
+    riddleSubmitBtn.addEventListener("click", submitRiddle);
+    riddleCancelBtn.addEventListener("click", closeRiddle);
+    riddleAnswerInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        submitRiddle();
+      } else if (e.key === "Escape") {
+        closeRiddle();
+      }
+    });
+
+    restartButton.addEventListener("click", resetGame);
+
+    // --- Game update & draw ---
+    function update(dt) {
+      if (!gameRunning) return;
+
+      // Time
+      timeLeft -= dt;
+      if (timeLeft <= 0) {
+        timeLeft = 0;
+        updateHUD();
+        const allWished = npcs.every((n) => n.wished);
+        if (!allWished) {
+          endGame(false);
+        } else {
+          endGame(true);
+        }
+        return;
+      }
+
+      // Movement (keyboard)
+      let vx = 0;
+      let vy = 0;
+      if (keys["ArrowUp"] || keys["w"] || keys["W"]) vy -= 1;
+      if (keys["ArrowDown"] || keys["s"] || keys["S"]) vy += 1;
+      if (keys["ArrowLeft"] || keys["a"] || keys["A"]) vx -= 1;
+      if (keys["ArrowRight"] || keys["d"] || keys["D"]) vx += 1;
+
+      if (vx !== 0 || vy !== 0) {
+        const len = Math.sqrt(vx * vx + vy * vy) || 1;
+        vx /= len;
+        vy /= len;
+        player.x += vx * PLAYER_SPEED * dt;
+        player.y += vy * PLAYER_SPEED * dt;
+      }
+
+      // Clamp to bounds
+      player.x = Math.max(PLAYER_RADIUS, Math.min(W - PLAYER_RADIUS, player.x));
+      player.y = Math.max(PLAYER_RADIUS, Math.min(H - PLAYER_RADIUS, player.y));
+
+      // Show / hide wish button depending on proximity
+      let nearAny = false;
+      npcs.forEach((npc) => {
+        if (!npc.wished && distance(npc, player) < INTERACT_DISTANCE) {
+          nearAny = true;
+        }
+      });
+      wishButton.style.display = nearAny && gameRunning ? "block" : "none";
+
+      updateHUD();
+    }
+
+    function drawBackground() {
+      // Simple “city” blocks as rectangles
+      ctx.save();
+      ctx.fillStyle = "#020617";
+      ctx.fillRect(0, 0, W, H);
+
+      ctx.fillStyle = "#0f172a";
+      const blockSize = 120;
+      for (let x = 40; x < W; x += blockSize) {
+        for (let y = 40; y < H; y += blockSize) {
+          ctx.fillRect(x - 10, y - 10, 60, 40);
+        }
+      }
+
+      // Simple “roads”
+      ctx.strokeStyle = "#111827";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([10, 10]);
+      ctx.beginPath();
+      ctx.moveTo(0, H / 2);
+      ctx.lineTo(W, H / 2);
+      ctx.moveTo(W / 2, 0);
+      ctx.lineTo(W / 2, H);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(player.x, player.y, PLAYER_RADIUS, 0, Math.PI * 2);
+      const gradient = ctx.createRadialGradient(
+        player.x,
+        player.y,
+        2,
+        player.x,
+        player.y,
+        PLAYER_RADIUS
+      );
+      gradient.addColorStop(0, "#fde68a");
+      gradient.addColorStop(1, "#f97316");
+      ctx.fillStyle = gradient;
+      ctx.fill();
+      ctx.lineWidth = 2;
+      ctx.strokeStyle = "#facc15";
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawNPCs() {
+      npcs.forEach((npc) => {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(npc.x, npc.y, NPC_RADIUS, 0, Math.PI * 2);
+        if (npc.wished) {
+          ctx.fillStyle = "#16a34a";
+        } else {
+          ctx.fillStyle = "#3b82f6";
+        }
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = npc.wished ? "#22c55e" : "#60a5fa";
+        ctx.stroke();
+
+        // Face dots
+        ctx.fillStyle = "#020617";
+        ctx.beginPath();
+        ctx.arc(npc.x - 4, npc.y - 3, 2, 0, Math.PI * 2);
+        ctx.arc(npc.x + 4, npc.y - 3, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Tiny smile if wished
+        if (npc.wished) {
+          ctx.beginPath();
+          ctx.arc(npc.x, npc.y + 2, 6, 0.15 * Math.PI, 0.85 * Math.PI);
+          ctx.lineWidth = 1.5;
+          ctx.strokeStyle = "#020617";
+          ctx.stroke();
+        }
+        ctx.restore();
+      });
+    }
+
+    function drawOverlayText() {
+      ctx.save();
+      ctx.font = "16px system-ui";
+      ctx.fillStyle = "rgba(248, 250, 252, 0.9)";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "Find each person, answer their riddle, and wish them a Happy New Year before midnight!",
+        W / 2,
+        24
+      );
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBackground();
+      drawNPCs();
+      drawPlayer();
+      drawOverlayText();
+    }
+
+    function gameLoop(timestamp) {
+      if (!lastTime) lastTime = timestamp;
+      const dt = (timestamp - lastTime) / 1000;
+      lastTime = timestamp;
+
+      update(dt);
+      draw();
+
+      if (gameRunning) {
+        requestAnimationFrame(gameLoop);
+      }
+    }
+
+    // Start the game
+    resetGame();
+  </script>
+</body>
+</html>
